@@ -158,8 +158,8 @@
                     throw new Error("미리보기 환경에서는 로컬 파일을 불러올 수 없습니다.");
                 }
 
-                // 깃허브 하위 폴더의 실제 데이터를 불러오는 로직 (공백 및 한글 경로 인식을 위해 encodeURI 적용)
-                fetch(encodeURI('map data/지도 데이터.json'))
+               // 깃허브 최상위 폴더의 실제 데이터(data.json)를 불러오는 로직
+                fetch('data.json')
                     .then(res => {
                         if (!res.ok) throw new Error("네트워크 응답이 정상이 아닙니다.");
                         return res.json();
@@ -170,9 +170,12 @@
                         renderFilters();
                         updateMapMarkers();
                     })
-                    .catch(err => showSampleData(err));
+                    .catch(err => {
+                        console.error("데이터 로드 실패:", err);
+                        alert("데이터를 불러오지 못했습니다. 깃허브에 data.json 파일이 올바르게 있는지 확인해주세요.");
+                    });
             } catch (err) {
-                showSampleData(err);
+                console.error("초기화 오류:", err);
             }
 
            document.getElementById('close-detail').addEventListener('click', () => {
