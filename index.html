@@ -2,31 +2,313 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스크린 골프장 안내</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 p-4 md:p-8">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">스크린 골프장 정보</h1>
-        
-        <!-- 매장 1 -->
-        <div class="mb-8 p-4 border rounded-lg hover:shadow-lg transition-shadow">
-            <h2 class="text-lg font-semibold text-blue-600">골프존파크 장항 K스크린점</h2>
-            <p class="text-sm text-gray-600 mt-1">경기도 고양시 일산동구 중앙로1261번길 61, 5층</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=골프존파크+장항+k스크린점" 
-               class="mt-4 block text-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">지도에서 위치 확인</a>
-        </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>까슐랭 가이드 2026</title>
+    
+    <!-- 웹 폰트 (Noto Sans KR 추가) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 
-        <!-- 매장 2 -->
-        <div class="p-4 border rounded-lg hover:shadow-lg transition-shadow">
-            <h2 class="text-lg font-semibold text-blue-600">골프존파크 장항 발리스크린골프</h2>
-            <p class="text-sm text-gray-600 mt-1">경기도 고양시 일산동구 무궁화로 34</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=골프존파크+장항발리스크린골프" 
-               class="mt-4 block text-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">지도에서 위치 확인</a>
-        </div>
+    <!-- 디자인 (CSS 프레임워크: Tailwind CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 아이콘 (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 지도 라이브러리 (Leaflet.js) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        /* 커스텀 스크롤바 (모바일에서는 잘 안보이지만 데스크톱 뷰어용) */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        <p class="text-center text-gray-400 text-xs mt-8">공유해 드린 링크를 눌러 상세 위치를 확인하세요.</p>
+        /* 폰트 설정 (Noto Sans KR 최우선 적용) */
+        body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+        
+        /* 지도 컨테이너 높이 (공간 절약분 반영: 40vh -> 55vh) */
+        #map { height: 55vh; z-index: 10; }
+
+        /* 커스텀 마커 스타일 */
+        .custom-marker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            color: white;
+            font-size: 14px;
+        }
+        .marker-legend { background-color: #eab308; } /* 전설의 맛집: 노란색 */
+        .marker-light { background-color: #3b82f6; } /* 가벼운 한끼: 파란색 */
+        .marker-lab { background-color: #6b7280; }   /* 맛집 실험실: 회색 */
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center h-screen overflow-hidden">
+
+    <!-- 스마트폰 모바일 레이아웃 래퍼 -->
+    <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
+        
+        <!-- 헤더 -->
+        <header class="bg-white border-b py-3 px-4 flex justify-center items-center shadow-sm z-20">
+            <div class="border-2 border-gray-800 rounded-full px-6 py-1">
+                <h1 class="text-lg font-bold text-gray-800">까슐랭 가이드 2026</h1>
+            </div>
+        </header>
+
+        <!-- 지도 영역 -->
+        <div id="map" class="w-full border-b-2 border-gray-300"></div>
+
+        <!-- 필터 및 콘텐츠 영역 (스크롤 가능) -->
+        <div class="flex-1 overflow-y-auto bg-gray-50 pb-6">
+            
+            <!-- 컨트롤 패널 (스위치류) -->
+            <div class="p-2 space-y-2">
+                
+                <!-- 클래스 선택 -->
+                <div class="bg-white p-2 rounded-lg border border-gray-300 shadow-sm">
+                    <div class="grid grid-cols-3 gap-2" id="class-filters">
+                        <!-- JS에서 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 장르 선택 -->
+                <div class="bg-white p-2 rounded-lg border border-gray-300 shadow-sm">
+                    <div class="grid grid-cols-4 gap-2" id="genre-filters">
+                        <!-- JS에서 동적 생성 -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 식당 세부 정보 표시 영역 (선택 시 나타남) -->
+            <div id="restaurant-detail" class="px-2 hidden">
+                <div class="border-2 border-dashed border-gray-400 p-2 bg-white relative">
+                    <button id="close-detail" class="absolute top-1 right-1 text-gray-400 hover:text-gray-700">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                    
+                    <h2 id="detail-name" class="text-xl font-black mb-1">식당이름</h2>
+                    
+                    <p class="text-xs text-gray-700 mb-1 flex items-start font-bold">
+                        <i class="fa-solid fa-caret-right mt-0.5 mr-1 text-gray-500"></i>
+                        <span>주소 : <span id="detail-address" class="font-normal">주소내용</span></span>
+                    </p>
+                    
+                    <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border border-gray-300 py-0.5 font-bold">장르</th>
+                                <th class="border border-gray-300 py-0.5 font-bold">종목</th>
+                                <th class="border border-gray-300 py-0.5 font-bold">추천메뉴</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="detail-genre" class="border border-gray-300 py-0.5">한식</td>
+                                <td id="detail-type" class="border border-gray-300 py-0.5">매운탕</td>
+                                <td id="detail-menu" class="border border-gray-300 py-0.5 font-bold text-blue-700">메기매운탕</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div id="detail-note" class="border border-gray-300 p-1.5 text-xs bg-gray-50 rounded mt-1">
+                        참고사항 내용이 들어갑니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 안내 문구 (초기 상태) -->
+            <div id="empty-state" class="px-4 py-8 text-center text-gray-500">
+                <i class="fa-solid fa-map-location-dot text-4xl mb-3 text-gray-300"></i>
+                <p>지도에서 마커를 선택하거나<br>필터를 조작해 보세요.</p>
+                <p class="text-xs mt-4 text-red-500">* 본 지도의 마커 위치는 좌표 데이터(위도/경도)가 없어 지역명 기반으로 임의 생성된 가상의 위치입니다.</p>
+            </div>
+
+        </div>
     </div>
+
+    <!-- 로직 (JavaScript) -->
+    <script>
+        // 상태 관리 변수
+        let restaurants = [];
+        let map;
+        let markersGroup;
+        let activeClasses = new Set(['전설의 맛집', '가벼운 한끼', '맛집 실험실']); // 초기: 모두 켜짐
+        let activeGenres = new Set(['한식', '중식', '일식', '양식', '분식', '퓨전', '디저트', '카페']); // 초기: 모두 켜짐
+
+        const CLASSES = ['전설의 맛집', '가벼운 한끼', '맛집 실험실'];
+        const GENRES = ['한식', '중식', '일식', '양식', '분식', '퓨전', '디저트', '카페'];
+
+        /**
+         * [초기화 영역] 외부 JSON 데이터 로드
+         */
+        function initApp() {
+            initMap();
+            
+            try {
+                // 현재 구동 환경이 미리보기(blob:)인 경우 URL 파싱 에러가 발생하므로 즉시 예외 처리
+                if (window.location.protocol === 'blob:') {
+                    throw new Error("미리보기 환경에서는 로컬 파일을 불러올 수 없습니다.");
+                }
+
+                // 깃허브 하위 폴더의 실제 데이터를 불러오는 로직 (공백 및 한글 경로 인식을 위해 encodeURI 적용)
+                fetch(encodeURI('map data/지도 데이터.json'))
+                    .then(res => {
+                        if (!res.ok) throw new Error("네트워크 응답이 정상이 아닙니다.");
+                        return res.json();
+                    })
+                    .then(data => {
+                        // 위도와 경도 데이터를 지도 좌표계에 맞게 변환
+                        restaurants = data.map(r => ({ ...r, coords: [r.위도, r.경도] }));
+                        renderFilters();
+                        updateMapMarkers();
+                    })
+                    .catch(err => showSampleData(err));
+            } catch (err) {
+                showSampleData(err);
+            }
+
+            document.getElementById('close-detail').addEventListener('click', () => {
+                document.getElementById('restaurant-detail').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+            });
+        }
+
+        // 임시 샘플 표출 로직
+        function showSampleData(err) {
+            console.warn("데이터 로드 실패, 임시 샘플 표출:", err.message);
+            // 프리뷰 뷰어에서 외부 파일을 못 읽어 에러가 날 경우를 대비한 최소한의 샘플
+            restaurants = [
+                {"식당명": "귀골산장", "주소": "충북 충주시 살미면 향산리 491", "등급": "가벼운 한끼", "장르": "한식", "종목": "매운탕", "추천메뉴": "메기매운탕", "참고사항": "샘플 데이터입니다. 실제 깃허브 적용 시 사라집니다.", "coords": [36.908332, 127.935124]},
+                {"식당명": "넙딱집", "주소": "경기 고양시 일산동구 장항동 854-1", "등급": "가벼운 한끼", "장르": "한식", "종목": "고기구이", "추천메뉴": "이불갈비", "참고사항": "샘플 데이터입니다. 실제 깃허브 적용 시 사라집니다.", "coords": [37.660124, 126.772541]}
+            ];
+            renderFilters();
+            updateMapMarkers();
+        }
+
+        // 지도 초기화 (Leaflet OpenStreetMap)
+        function initMap() {
+            map = L.map('map').setView([36.5, 127.5], 6); // 한반도 중심 줌
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            markersGroup = L.layerGroup().addTo(map);
+        }
+
+        // 필터 버튼 렌더링
+        function renderFilters() {
+            const classContainer = document.getElementById('class-filters');
+            classContainer.innerHTML = ''; // 초기화
+            CLASSES.forEach(cls => {
+                const btn = document.createElement('button');
+                // 공간 절약: py-2 -> py-1로 변경하여 글자크기는 유지하되 위아래 빈공간 축소
+                btn.className = `py-1 px-1 text-base font-bold border rounded-lg transition-all focus:outline-none ${
+                    activeClasses.has(cls) 
+                    ? 'bg-blue-600 text-white border-blue-800 border-b-4 active:border-b-0 active:translate-y-[4px]' 
+                    : 'bg-gray-100 text-gray-500 border-gray-300 border-b-4 active:border-b-0 active:translate-y-[4px]'
+                }`;
+                btn.innerHTML = cls.replace(' ', '<br>');
+                btn.onclick = () => toggleFilter('class', cls, btn);
+                classContainer.appendChild(btn);
+            });
+
+            const genreContainer = document.getElementById('genre-filters');
+            genreContainer.innerHTML = ''; // 초기화
+            GENRES.forEach(gen => {
+                const btn = document.createElement('button');
+                // 공간 절약: py-2 -> py-1로 변경하여 글자크기는 유지하되 위아래 빈공간 축소
+                btn.className = `py-1 text-base font-bold border rounded-lg transition-all focus:outline-none ${
+                    activeGenres.has(gen) 
+                    ? 'bg-orange-500 text-white border-orange-700 border-b-4 active:border-b-0 active:translate-y-[4px]' 
+                    : 'bg-gray-100 text-gray-500 border-gray-300 border-b-4 active:border-b-0 active:translate-y-[4px]'
+                }`;
+                btn.innerText = gen;
+                btn.onclick = () => toggleFilter('genre', gen, btn);
+                genreContainer.appendChild(btn);
+            });
+        }
+
+        // 필터 토글 로직
+        function toggleFilter(type, value, element) {
+            const set = type === 'class' ? activeClasses : activeGenres;
+            
+            if (set.has(value)) {
+                set.delete(value); // 비활성화
+                // 비활성화 시에도 축소된 높이(py-1) 유지
+                element.className = `py-1 px-1 text-base font-bold border rounded-lg transition-all focus:outline-none bg-gray-100 text-gray-500 border-gray-300 border-b-4 active:border-b-0 active:translate-y-[4px]`;
+            } else {
+                set.add(value); // 활성화
+                if(type === 'class') {
+                    // 활성화 시에도 축소된 높이(py-1) 유지
+                    element.className = `py-1 px-1 text-base font-bold border rounded-lg transition-all focus:outline-none bg-blue-600 text-white border-blue-800 border-b-4 active:border-b-0 active:translate-y-[4px]`;
+                } else {
+                    element.className = `py-1 text-base font-bold border rounded-lg transition-all focus:outline-none bg-orange-500 text-white border-orange-700 border-b-4 active:border-b-0 active:translate-y-[4px]`;
+                }
+            }
+            updateMapMarkers(); 
+        }
+
+        // 필터 조건에 맞춰 마커 업데이트
+        function updateMapMarkers() {
+            markersGroup.clearLayers(); // 기존 마커 모두 지우기
+
+            const filteredData = restaurants.filter(r => 
+                activeClasses.has(r.등급) && activeGenres.has(r.장르)
+            );
+
+            filteredData.forEach(r => {
+                // 등급에 따른 아이콘 스타일 결정
+                let iconClass = 'marker-lab';
+                let iconHtml = '<i class="fa-solid fa-flask"></i>';
+                
+                if (r.등급 === '전설의 맛집') {
+                    iconClass = 'marker-legend';
+                    iconHtml = '<i class="fa-solid fa-star"></i>';
+                } else if (r.등급 === '가벼운 한끼') {
+                    iconClass = 'marker-light';
+                    iconHtml = '<i class="fa-solid fa-utensils"></i>';
+                }
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="custom-marker ${iconClass}">${iconHtml}</div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+
+                const marker = L.marker(r.coords, { icon: customIcon }).addTo(markersGroup);
+                
+                // 마커 클릭 이벤트
+                marker.on('click', () => {
+                    showRestaurantDetail(r);
+                    map.setView(r.coords, 10); // 클릭 시 해당 마커로 줌인
+                });
+            });
+        }
+
+        // 하단 상세 정보 표시 로직
+        function showRestaurantDetail(data) {
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('restaurant-detail').classList.remove('hidden');
+
+            document.getElementById('detail-name').innerText = data.식당명;
+            document.getElementById('detail-address').innerText = data.주소;
+            document.getElementById('detail-genre').innerText = data.장르;
+            document.getElementById('detail-type').innerText = data.종목;
+            document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
+            document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
+            
+            // 상세 정보 창으로 스크롤 부드럽게 이동
+            document.getElementById('restaurant-detail').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 앱 실행
+        window.onload = initApp;
+
+    </script>
 </body>
 </html>
