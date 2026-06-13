@@ -26,8 +26,8 @@
         /* 폰트 설정 (Noto Sans KR 최우선 적용) */
         body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
         
-        /* 지도 컨테이너 높이 (공간 절약분 반영: 40vh -> 55vh) */
-        #map { height: 55vh; z-index: 10; }
+        /* 지도 컨테이너 높이 (5% 축소: 55vh -> 50vh) */
+        #map { height: 50vh; z-index: 10; }
 
         /* 커스텀 마커 스타일 */
         .custom-marker {
@@ -52,15 +52,14 @@
     <!-- 스마트폰 모바일 레이아웃 래퍼 -->
     <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
         
-        <!-- 헤더 -->
-        <header class="bg-white border-b py-3 px-4 flex justify-center items-center shadow-sm z-20">
-            <div class="border-2 border-gray-800 rounded-full px-6 py-1">
-                <h1 class="text-lg font-bold text-gray-800">까슐랭 가이드 2026</h1>
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] pointer-events-none">
+            <div class="bg-white/10 border-2 border-gray-800 rounded-full px-6 py-0 shadow-lg backdrop-blur-md pointer-events-auto">
+                <h1 class="text-lg font-black text-gray-800 tracking-wide leading-none m-0">까슐랭 가이드 2026</h1>
             </div>
-        </header>
+        </div>
+        
 
-        <!-- 지도 영역 -->
-        <div id="map" class="w-full border-b-2 border-gray-300"></div>
+        <div id="map" class="w-full border-b-2 border-gray-300 relative"></div>
 
         <!-- 필터 및 콘텐츠 영역 (스크롤 가능) -->
         <div class="flex-1 overflow-y-auto bg-gray-50 pb-6">
