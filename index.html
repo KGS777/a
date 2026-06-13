@@ -29,7 +29,7 @@
         /* 지도 컨테이너 높이 (5% 축소: 55vh -> 50vh) */
         #map { height: 50vh; z-index: 10; }
 
-       /* 커스텀 마커 스타일 */
+        /* 커스텀 마커 스타일 */
         .custom-marker {
             display: flex;
             justify-content: center;
@@ -42,9 +42,21 @@
             color: white;
             font-size: 14px;
         }
-        .marker-legend { background-color: #ef4444; } /* 전설의 맛집: 빨간색 */
-        .marker-light { background-color: #f97316; }  /* 가벼운 한끼: 주황색 */
-        .marker-lab { background-color: #eab308; }    /* 맛집 실험실: 노란색 */
+        .marker-legend { background-color: #eab308; } /* 전설의 맛집: 노란색 */
+        .marker-light { background-color: #3b82f6; } /* 가벼운 한끼: 파란색 */
+        .marker-lab { background-color: #6b7280; }   /* 맛집 실험실: 회색 */
+
+        /* [추가] 마커 라벨(상호명) 스타일 (장르 버튼과 동일한 16px) */
+        .marker-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            background-color: rgba(255, 255, 255, 0.85);
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2px 6px;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex justify-center h-screen overflow-hidden">
@@ -53,10 +65,10 @@
     <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
         
         <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] pointer-events-none">
-            <div class="bg-white/10 border-2 border-gray-800 rounded-full px-4 py-[2px] shadow-lg backdrop-blur-md pointer-events-auto">
-                <h1 class="text-base font-black text-gray-700 tracking-wide whitespace-nowrap leading-none m-0">까슐랭 가이드 2026</h1>
+            <div class="bg-white/10 border-2 border-gray-800 rounded-full px-6 py-[2px] shadow-lg backdrop-blur-md pointer-events-auto">
+                <h1 class="text-lg font-black text-gray-700 tracking-wide leading-none m-0">까슐랭 가이드 2026</h1>
             </div>
-        </div>
+        </div>      
 
         <div id="map" class="w-full border-b-2 border-gray-300 relative"></div>
 
@@ -91,8 +103,8 @@
                     
                     <h2 id="detail-name" class="text-xl font-black mb-1">식당이름</h2>
                     
-                    <div class="flex justify-between items-start mb-1.5">
-                        <p class="text-[15px] text-gray-700 flex items-start font-bold leading-tight mt-0.5">
+                    <div class="flex justify-between items-start mb-1">
+                        <p class="text-[13px] text-gray-700 flex items-start font-bold leading-tight mt-0.5">
                             <i class="fa-solid fa-caret-right mt-1 mr-1 text-gray-500"></i>
                             <span>주소 : <span id="detail-address" class="font-normal">주소내용</span></span>
                         </p>
@@ -101,28 +113,29 @@
                         </button>
                     </div>
                     
-                    <table class="w-full border-collapse border border-gray-300 text-center text-[14px] mb-1.5">
+                    <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="border border-gray-300 py-1 font-bold">장르</th>
-                                <th class="border border-gray-300 py-1 font-bold">종목</th>
-                                <th class="border border-gray-300 py-1 font-bold">추천메뉴</th>
+                                <th class="border border-gray-300 py-0.5 font-bold">장르</th>
+                                <th class="border border-gray-300 py-0.5 font-bold">종목</th>
+                                <th class="border border-gray-300 py-0.5 font-bold">추천메뉴</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td id="detail-genre" class="border border-gray-300 py-1">한식</td>
-                                <td id="detail-type" class="border border-gray-300 py-1">매운탕</td>
-                                <td id="detail-menu" class="border border-gray-300 py-1 font-bold text-blue-700">메기매운탕</td>
+                                <td id="detail-genre" class="border border-gray-300 py-0.5">한식</td>
+                                <td id="detail-type" class="border border-gray-300 py-0.5">매운탕</td>
+                                <td id="detail-menu" class="border border-gray-300 py-0.5 font-bold text-blue-700">메기매운탕</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div id="detail-note" class="border border-gray-300 p-2 text-[14px] bg-gray-50 rounded mt-1">
+                    <div id="detail-note" class="border border-gray-300 p-1.5 text-xs bg-gray-50 rounded mt-1">
                         참고사항 내용이 들어갑니다.
                     </div>
                 </div>
             </div>
+
             <!-- 안내 문구 (초기 상태) -->
             <div id="empty-state" class="px-4 py-8 text-center text-gray-500">
                 <i class="fa-solid fa-map-location-dot text-4xl mb-3 text-gray-300"></i>
@@ -288,14 +301,16 @@
             );
 
             filteredData.forEach(r => {
-                // 등급에 따른 아이콘 스타일 결정 (아이콘 모양은 별표로 통일)
+                // 등급에 따른 아이콘 스타일 결정
                 let iconClass = 'marker-lab';
-                let iconHtml = '<i class="fa-solid fa-star"></i>';
+                let iconHtml = '<i class="fa-solid fa-flask"></i>';
                 
                 if (r.등급 === '전설의 맛집') {
                     iconClass = 'marker-legend';
+                    iconHtml = '<i class="fa-solid fa-star"></i>';
                 } else if (r.등급 === '가벼운 한끼') {
                     iconClass = 'marker-light';
+                    iconHtml = '<i class="fa-solid fa-utensils"></i>';
                 }
 
                 const customIcon = L.divIcon({
@@ -307,10 +322,19 @@
 
                 const marker = L.marker(r.coords, { icon: customIcon }).addTo(markersGroup);
                 
+                // [이슈 1 해결] 상호명 라벨 표시 (항상 노출, 마커 하단에 배치)
+                marker.bindTooltip(r.식당명, { 
+                    permanent: true, 
+                    direction: 'bottom', 
+                    offset: [0, 10], 
+                    className: 'marker-label' 
+                });
+                
                 // 마커 클릭 이벤트
                 marker.on('click', () => {
                     showRestaurantDetail(r);
-                    map.setView(r.coords, 10); // 클릭 시 해당 마커로 줌인
+                    // [이슈 3 해결] 강제 줌 레벨 고정 해제, 현재 줌 상태를 유지하며 위치만 부드럽게 이동
+                    map.panTo(r.coords); 
                 });
             });
         }
@@ -324,11 +348,17 @@
             document.getElementById('detail-address').innerText = data.주소;
             document.getElementById('detail-genre').innerText = data.장르;
             document.getElementById('detail-type').innerText = data.종목;
-            document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
+           document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
             document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
             
-            // 상세 정보 창으로 스크롤 부드럽게 이동
-            document.getElementById('restaurant-detail').scrollIntoView({ behavior: 'smooth' });
+            // [이슈 2 해결] 레이아웃 붕괴(타이틀 사라짐) 방지를 위한 안전한 내부 스크롤
+            const scrollContainer = document.querySelector('.overflow-y-auto');
+            if(scrollContainer) {
+                // 부모 컨테이너 기준의 상대적인 위치값을 계산하여 내부 스크롤만 안전하게 이동
+                const detailBox = document.getElementById('restaurant-detail');
+                const relativeTop = detailBox.offsetTop - scrollContainer.offsetTop;
+                scrollContainer.scrollTo({ top: relativeTop - 10, behavior: 'smooth' });
+            }
         }
 
         // 앱 실행
