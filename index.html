@@ -191,7 +191,7 @@
                     })
                     .then(async data => {
                         // [업데이트] 비동기 좌표 변환 로직 적용
-                        const processedData = await Promise.all(data.map(async (r) => {
+                        const processedData = await Promise.all(data.Sheet1.map(async (r) => {
                             // 1. 기존 데이터에 이미 위도와 경도가 존재한다면 그대로 사용
                             if (r.위도 && r.경도) {
                                 return { ...r, coords: [r.위도, r.경도] };
