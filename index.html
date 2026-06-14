@@ -190,16 +190,19 @@
                         return res.json();
                     })
                     .then(async data => {
-                        // [업데이트] 비동기 좌표 변환 로직 적용
-                        const processedData = await Promise.all(data.Sheet1.map(async (r) => {
-                            // 1. 기존 데이터에 이미 위도와 경도가 존재한다면 그대로 사용
+                        // [수정] 네이버 차단 방어: 0.1초 간격 순차 변환 로직 (과부하 회피)
+                        const processedData = [];
+                        for (const r of data.Sheet1) {
                             if (r.위도 && r.경도) {
-                                return { ...r, coords: [r.위도, r.경도] };
+                                processedData.push({ ...r, coords: [r.위도, r.경도] });
+                            } else {
+                                const coords = await fetchCoordinateFromNaver(r.주소);
+                                processedData.push({ ...r, coords: coords });
+                                
+                                // [핵심] 차단 방어막: 한 개의 주소를 변환한 후 0.1초(100ms) 대기
+                                await new Promise(resolve => setTimeout(resolve, 100));
                             }
-                            // 2. 좌표가 없다면 네이버 API를 호출하여 주소 기반 변환 진행
-                            const coords = await fetchCoordinateFromNaver(r.주소);
-                            return { ...r, coords: coords };
-                        }));
+                        }
                         
                         // 변환이 완료되었거나 원래 좌표가 있던 유효한 식당 데이터만 필터링하여 저장
                         restaurants = processedData.filter(r => r.coords !== null);
