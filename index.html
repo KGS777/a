@@ -65,16 +65,23 @@
             </div>
         </div>
 
-        <div class="relative w-full h-[50vh] border-b-2 border-gray-300">
+        <div id="map-wrapper" class="relative w-full h-[50vh] shrink-0 border-b-2 border-gray-300">
             <div id="map" class="w-full h-full z-10"></div>
             <div class="absolute bottom-4 left-2 z-[1000] flex space-x-1.5 pointer-events-auto">
                 <button id="btn-all-off" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 끔</button>
                 <button id="btn-all-on" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 켬</button>
             </div>
-        </div>
 
-        <div class="flex-1 overflow-y-auto bg-gray-50 pb-6">
+            <div class="absolute top-4 right-2 z-[1000] pointer-events-auto">
+                <button id="btn-my-loc" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-blue-100 text-blue-900 border-gray-600 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">내 위치</button>
+            </div>
+        </div>
+<div class="flex-1 overflow-y-auto bg-gray-50 pb-6 relative">
             
+            <div id="drag-handle" class="sticky top-0 left-0 w-full py-2.5 flex justify-center items-center cursor-ns-resize bg-gray-50 z-[1001] border-b border-gray-200 mb-1" style="touch-action: none;">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+
             <div class="p-2 space-y-2">
                 <div class="bg-white p-2 rounded-lg border-2 border-gray-800 shadow-sm">
                     <div class="grid grid-cols-3 gap-1" id="class-filters"></div>
@@ -196,11 +203,36 @@
                 updateMapMarkers();
             });
 
-            document.getElementById('btn-all-on').addEventListener('click', () => {
+           document.getElementById('btn-all-on').addEventListener('click', () => {
                 CLASSES.forEach(c => activeClasses.add(c));
                 GENRES.forEach(g => activeGenres.add(g));
                 renderFilters();
                 updateMapMarkers();
+            });
+
+            // [추가] 내 위치 버튼 클릭 이벤트
+            document.getElementById('btn-my-loc').addEventListener('click', () => {
+                // maxZoom: 15로 설정하여 화면에 대략 반경 1km 수준이 차도록 자동 줌 인
+                map.locate({ setView: true, maxZoom: 15 });
+            });
+
+            // [추가] 위치 찾기 성공 시 지도에 파란색 마커와 오차 반경 원 표시
+            map.on('locationfound', function(e) {
+                // 버튼을 여러 번 눌러도 마커가 중복 생성되지 않도록 기존 마커 지우기
+                if (window.myLocMarker) map.removeLayer(window.myLocMarker);
+                if (window.myLocCircle) map.removeLayer(window.myLocCircle);
+                
+                window.myLocMarker = L.marker(e.latlng).addTo(map).bindPopup("현재 위치").openPopup();
+                window.myLocCircle = L.circle(e.latlng, e.accuracy / 2, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.2
+                }).addTo(map);
+            });
+
+            // [추가] 브라우저 권한 거부 등으로 위치 찾기 실패 시 안내
+            map.on('locationerror', function(e) {
+                alert("위치 정보를 가져올 수 없습니다. 기기나 브라우저의 위치 권한 허용 여부를 확인해주세요.");
             });
         }
 
@@ -342,6 +374,51 @@
                 scrollContainer.scrollTo({ top: relativeTop - 10, behavior: 'smooth' });
             }
         }
+
+        // [추가] 드래그를 통한 지도 면적 조절 로직 (안전장치 포함)
+        document.addEventListener('DOMContentLoaded', () => {
+            const mapWrapper = document.getElementById('map-wrapper');
+            const handle = document.getElementById('drag-handle');
+            let isDragging = false;
+            let startY, startHeight;
+
+            const startDrag = (e) => {
+                isDragging = true;
+                startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                startHeight = mapWrapper.offsetHeight;
+                document.body.style.userSelect = 'none'; // 텍스트 선택 방지
+            };
+
+            const onDrag = (e) => {
+                if (!isDragging) return;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                const deltaY = clientY - startY; 
+                const vhDelta = (deltaY / window.innerHeight) * 100;
+                let newMapHeight = (startHeight / window.innerHeight) * 100 + vhDelta;
+
+                // [핵심] 사용자의 요청: "지금 상태(50vh) 이상으로 패널이 올라갈 이유가 없다."
+                // 지도는 최소 50vh 유지 (현재 지도보다 안 작아짐 = 패널이 더 안 올라감)
+                if (newMapHeight < 50) newMapHeight = 50; 
+                // 지도는 최대 85vh 까지만 넓어짐 (버튼과 정보창을 위한 최소 공간 확보)
+                if (newMapHeight > 85) newMapHeight = 85; 
+
+                mapWrapper.style.height = `${newMapHeight}vh`;
+                if(map) map.invalidateSize(); // 지도 찌그러짐 방지 렌더링
+            };
+
+            const endDrag = () => {
+                isDragging = false;
+                document.body.style.userSelect = '';
+            };
+
+            // 마우스 및 모바일 터치 이벤트 모두 지원
+            handle.addEventListener('mousedown', startDrag);
+            handle.addEventListener('touchstart', startDrag, { passive: true });
+            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('touchmove', onDrag, { passive: true });
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchend', endDrag);
+        });
 
         window.onload = initApp;
     </script>
