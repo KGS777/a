@@ -61,8 +61,8 @@
         <div class="relative w-full h-[50vh] border-b-2 border-gray-300">
             <div id="map" class="w-full h-full z-10"></div>
             <div class="absolute bottom-4 left-2 z-[1000] flex space-x-1.5 pointer-events-auto">
-                <button id="btn-all-off" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-500 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 끔</button>
-                <button id="btn-all-on" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-orange-100 text-orange-800 border-orange-400 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 켬</button>
+                <button id="btn-all-off" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 끔</button>
+                <button id="btn-all-on" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 켬</button>
             </div>
         </div>
 
@@ -277,14 +277,12 @@
 
             filteredData.forEach(r => {
                 let iconClass = 'marker-lab';
-                let iconHtml = '<i class="fa-solid fa-flask"></i>';
+                let iconHtml = '<i class="fa-solid fa-star"></i>';
                 
                 if (r.등급 === '전설의 맛집') {
                     iconClass = 'marker-legend';
-                    iconHtml = '<i class="fa-solid fa-star"></i>';
                 } else if (r.등급 === '가벼운 한끼') {
                     iconClass = 'marker-light';
-                    iconHtml = '<i class="fa-solid fa-utensils"></i>';
                 }
 
                 const customIcon = L.divIcon({
