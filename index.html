@@ -44,7 +44,14 @@
             border: 1px solid #d1d5db;
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 2px 6px;
+            /* [수정] 상하 여백을 0으로 없애고 줄간격을 조절하여 텍스트에 완전히 밀착시킴 */
+            padding: 0px 6px;
+            line-height: 1.2;
+        }
+
+        /* [추가] 축소된 지도에서 상호명 라벨을 완전히 숨기기 위한 제어 클래스 */
+        .hide-labels .marker-label {
+            display: none !important;
         }
     </style>
 </head>
@@ -206,12 +213,24 @@
             updateMapMarkers();
         }
 
-        function initMap() {
+       function initMap() {
             map = L.map('map').setView([36.5, 127.5], 6);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
             markersGroup = L.layerGroup().addTo(map);
+
+            // [추가] 줌 레벨 변경 감지: 레벨 14(대략 3km x 3km 뷰) 미만이면 라벨 숨김
+            map.on('zoomend', function() {
+                if (map.getZoom() < 14) {
+                    document.getElementById('map').classList.add('hide-labels');
+                } else {
+                    document.getElementById('map').classList.remove('hide-labels');
+                }
+            });
+            
+            // [추가] 초기 접속 시 전국 지도(레벨 6)이므로 라벨 강제 숨김 상태로 시작
+            document.getElementById('map').classList.add('hide-labels');
         }
 
         function renderFilters() {
