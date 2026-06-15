@@ -110,11 +110,12 @@
                         <button id="copy-address-btn" class="bg-blue-500 active:bg-blue-700 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm whitespace-nowrap ml-2 transition-colors">주소복사</button>
                     </div>
                     
-                    <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1">
+                    <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1 table-fixed">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="border border-gray-300 py-0.5 font-bold">장르</th>
-                                <th class="border border-gray-300 py-0.5 font-bold">종목</th>
+                                <th class="border border-gray-300 py-0.5 font-bold w-[45px]">장르</th>
+                                <th class="border border-gray-300 py-0.5 font-bold w-[65px]">종목</th>
+                                <th class="border border-gray-300 py-0.5 font-bold w-[45px]">주차</th>
                                 <th class="border border-gray-300 py-0.5 font-bold">추천메뉴</th>
                             </tr>
                         </thead>
@@ -122,7 +123,8 @@
                             <tr>
                                 <td id="detail-genre" class="border border-gray-300 py-0.5"></td>
                                 <td id="detail-type" class="border border-gray-300 py-0.5"></td>
-                                <td id="detail-menu" class="border border-gray-300 py-0.5 font-bold text-blue-700"></td>
+                                <td id="detail-parking" class="border border-gray-300 py-0.5"></td>
+                                <td id="detail-menu" class="border border-gray-300 py-0.5 font-bold text-blue-700 truncate px-1"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -200,9 +202,12 @@
                 });
             });
 
-            document.getElementById('btn-all-off').addEventListener('click', () => {
-                activeClasses.clear();
-                activeGenres.clear();
+          document.getElementById('btn-all-off').addEventListener('click', () => {
+                if (activeGenres.size > 0) {
+                    activeGenres.clear();
+                } else {
+                    activeClasses.clear();
+                }
                 renderFilters();
                 updateMapMarkers();
             });
@@ -364,6 +369,7 @@
             document.getElementById('detail-address').innerText = data.주소;
             document.getElementById('detail-genre').innerText = data.장르;
             document.getElementById('detail-type').innerText = data.종목;
+            document.getElementById('detail-parking').innerText = data.주차 || '-';
             document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
             document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
             
