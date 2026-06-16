@@ -68,9 +68,13 @@
         <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
             <div id="map" class="w-full h-full z-10"></div>
             
-            <div class="absolute bottom-4 left-2 z-[1000] flex space-x-1.5 pointer-events-auto">
-                <button id="btn-all-off" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 끔</button>
-                <button id="btn-all-on" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-white text-gray-600 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 켬</button>
+<div class="absolute bottom-4 left-2 z-[1000] flex space-x-1.5 pointer-events-auto">
+                <button id="btn-all-off" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-orange-500 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 끔</button>
+                <button id="btn-all-on" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-orange-500 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">전체 켬</button>
+            </div>
+
+            <div class="absolute top-4 right-2 z-[1000] pointer-events-auto">
+                <button id="btn-my-loc" class="py-0.5 px-1 text-base font-bold border rounded-lg bg-green-500 text-white border-gray-600 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">내 위치</button>
             </div>
 
             <div class="absolute top-4 right-2 z-[1000] pointer-events-auto">
@@ -84,13 +88,13 @@
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
             </div>
 
-            <div class="p-2 space-y-2">
+           <div class="p-2 space-y-2">
                 <div class="bg-white p-2 rounded-lg border-2 border-gray-800 shadow-sm">
-                    <div class="grid grid-cols-3 gap-1" id="class-filters"></div>
+                    <div class="grid grid-cols-4 gap-2" id="genre-filters"></div>
                 </div>
 
                 <div class="bg-white p-2 rounded-lg border border-gray-300 shadow-sm">
-                    <div class="grid grid-cols-4 gap-2" id="genre-filters"></div>
+                    <div class="grid grid-cols-3 gap-1" id="class-filters"></div>
                 </div>
             </div>
 
