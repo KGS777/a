@@ -251,10 +251,24 @@
         }
 
         function initMap() {
-            map = L.map('map').setView([36.5, 127.5], 6);
+            // 1. 남한 영역 경계 설정 (남서쪽 좌표, 북동쪽 좌표)
+            const southWest = L.latLng(33.0, 125.0); // 제주도 남쪽
+            const northEast = L.latLng(38.9, 132.0); // 강원도 고성 및 동해안 끝
+            const koreaBounds = L.latLngBounds(southWest, northEast);
+
+            // 2. 맵 초기화 시 경계 및 줌 레벨 제한 속성 부여
+            map = L.map('map', {
+                maxBounds: koreaBounds,
+                maxBoundsViscosity: 1.0, // 경계 이탈 방지 (1.0 = 완전 고정)
+                minZoom: 7 // 너무 많이 축소되어 경계 밖이 보이는 현상 방지
+            }).setView([36.5, 127.5], 7); // 초기 줌 레벨도 minZoom에 맞추어 상향 조정
+
+            // 3. 타일 레이어 로딩 시 해당 경계 영역의 데이터만 다운로드하도록 제한
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; OpenStreetMap contributors',
+                bounds: koreaBounds // 핵심: 이 영역 밖의 지도 타일은 네트워크 요청을 하지 않음
             }).addTo(map);
+            
             markersGroup = L.layerGroup().addTo(map);
 
             // 줌 레벨 감지하여 상호명 숨기기
