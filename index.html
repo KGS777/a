@@ -390,26 +390,32 @@
             // 스크롤 기능 삭제로 인한 스크롤 이동 로직 제거
         }
 
-       // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
+     // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
         document.addEventListener('DOMContentLoaded', () => {
             const mapWrapper = document.getElementById('map-wrapper');
-            const handle = document.querySelector('.flex-1.overflow-hidden'); // 클래스 변경점 동기화
+            const handle = document.querySelector('.flex-1.overflow-hidden');
             let isDragging = false;
             let startY, startHeight;
+            let hasMoved = false; // 추가: 단순 터치와 드래그를 구분하기 위한 변수
 
             const startDrag = (e) => {
-                // 수정: 버튼 클릭 동작은 드래그로 인식하지 않도록 예외 처리하여 클릭 오류 방지
-                if(e.target.closest('button')) return; 
                 isDragging = true;
+                hasMoved = false; // 드래그 시작 시 초기화
                 startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 startHeight = mapWrapper.offsetHeight;
                 document.body.style.userSelect = 'none'; 
+                // 추가: 드래그 중에는 0.3초 애니메이션 지연을 없애 즉각 반응하게 조치
+                mapWrapper.classList.remove('transition-all', 'duration-300', 'ease-out');
             };
 
             const onDrag = (e) => {
                 if (!isDragging) return;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 const deltaY = clientY - startY; 
+                
+                // 추가: 터치 후 5px 이상 움직였다면 '드래그' 상태로 판별
+                if (Math.abs(deltaY) > 5) hasMoved = true; 
+
                 const vhDelta = (deltaY / window.innerHeight) * 100;
                 let newMapHeight = (startHeight / window.innerHeight) * 100 + vhDelta;
 
@@ -423,8 +429,23 @@
             };
 
             const endDrag = () => {
+                if (!isDragging) return;
                 isDragging = false;
                 document.body.style.userSelect = '';
+                // 추가: 드래그가 끝나면 다시 애니메이션 속성 복구
+                mapWrapper.classList.add('transition-all', 'duration-300', 'ease-out');
+
+                // 추가: 드래그(5px 이상 이동) 후 손을 뗐다면, 그 위치에 있는 버튼이 눌리지 않게 차단
+                if (hasMoved) {
+                    const preventClick = (clickEvent) => {
+                        clickEvent.stopPropagation();
+                        clickEvent.preventDefault();
+                        document.removeEventListener('click', preventClick, true);
+                    };
+                    document.addEventListener('click', preventClick, true);
+                    // 혹시라도 이벤트가 증발할 경우를 대비한 클리어 타이머
+                    setTimeout(() => document.removeEventListener('click', preventClick, true), 50);
+                }
             };
 
             handle.addEventListener('mousedown', startDrag);
