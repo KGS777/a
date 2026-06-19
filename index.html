@@ -85,7 +85,7 @@
             </div>
 
            <div class="p-2 space-y-2">
-                <div class="bg-white p-2 rounded-lg border-2 border-gray-800 shadow-sm">
+                <div class="bg-white p-2 rounded-lg border border-gray-400 shadow-sm">
                     <div class="grid grid-cols-4 gap-2" id="genre-filters"></div>
                 </div>
 
@@ -307,14 +307,14 @@
                 classContainer.appendChild(btn);
             });
 
-            const genreContainer = document.getElementById('genre-filters');
+           const genreContainer = document.getElementById('genre-filters');
             genreContainer.innerHTML = ''; 
             GENRES.forEach(gen => {
                 const btn = document.createElement('button');
                 btn.className = `py-0.5 px-1 text-base font-bold border rounded-lg transition-all focus:outline-none ${
                     activeGenres.has(gen) 
-                    ? 'bg-orange-100 text-orange-800 border-orange-400 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]' 
-                    : 'bg-gray-100 text-gray-500 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]'
+                    ? 'bg-blue-200 text-black border-blue-400 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]' 
+                    : 'bg-gray-100 text-black border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]'
                 }`;
                 btn.innerText = gen;
                 btn.onclick = () => toggleFilter('genre', gen, btn);
@@ -395,14 +395,16 @@
             }
         }
 
-        // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
+       // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
         document.addEventListener('DOMContentLoaded', () => {
             const mapWrapper = document.getElementById('map-wrapper');
-            const handle = document.getElementById('drag-handle');
+            const handle = document.querySelector('.flex-1.overflow-y-auto'); // 수정: 영역 전체를 핸들로 지정
             let isDragging = false;
             let startY, startHeight;
 
             const startDrag = (e) => {
+                // 수정: 버튼 클릭 동작은 드래그로 인식하지 않도록 예외 처리하여 클릭 오류 방지
+                if(e.target.closest('button')) return; 
                 isDragging = true;
                 startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 startHeight = mapWrapper.offsetHeight;
