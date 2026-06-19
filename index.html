@@ -78,9 +78,9 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto bg-gray-50 pb-16 relative">
+        <div class="flex-1 overflow-hidden bg-gray-50 pb-16 relative" style="touch-action: none;">
             
-            <div id="drag-handle" class="sticky top-0 left-0 w-full py-1 flex justify-center items-center cursor-ns-resize bg-gray-50 z-[1001] border-b border-gray-200" style="touch-action: none;">
+            <div id="drag-handle" class="sticky top-0 left-0 w-full py-1 flex justify-center items-center cursor-ns-resize bg-gray-50 z-[1001] border-b border-gray-200">
                 <div class="w-12 h-1.5 bg-green-600 rounded-full"></div>
             </div>
 
@@ -387,18 +387,13 @@
             document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
             document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
             
-            const scrollContainer = document.querySelector('.overflow-y-auto');
-            if(scrollContainer) {
-                const detailBox = document.getElementById('restaurant-detail');
-                const relativeTop = detailBox.offsetTop - scrollContainer.offsetTop;
-                scrollContainer.scrollTo({ top: relativeTop - 10, behavior: 'smooth' });
-            }
+            // 스크롤 기능 삭제로 인한 스크롤 이동 로직 제거
         }
 
        // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
         document.addEventListener('DOMContentLoaded', () => {
             const mapWrapper = document.getElementById('map-wrapper');
-            const handle = document.querySelector('.flex-1.overflow-y-auto'); // 수정: 영역 전체를 핸들로 지정
+            const handle = document.querySelector('.flex-1.overflow-hidden'); // 클래스 변경점 동기화
             let isDragging = false;
             let startY, startHeight;
 
