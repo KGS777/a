@@ -199,13 +199,11 @@
                 });
             });
 
-          document.getElementById('btn-toggle-all').addEventListener('click', () => {
-                // 활성화된 버튼(종목 또는 등급)이 하나라도 존재하면 전체 비활성, 모두 꺼져있다면 전체 활성화
-                if (activeGenres.size > 0 || activeClasses.size > 0) {
+         document.getElementById('btn-toggle-all').addEventListener('click', () => {
+                // 등급 버튼은 유지하고, 8개 종목 버튼(장르)에 대해서만 토글 기능 수행
+                if (activeGenres.size > 0) {
                     activeGenres.clear();
-                    activeClasses.clear();
                 } else {
-                    CLASSES.forEach(c => activeClasses.add(c));
                     GENRES.forEach(g => activeGenres.add(g));
                 }
                 renderFilters();
@@ -265,8 +263,8 @@
           markersGroup = L.layerGroup().addTo(map);
 
             // 줌 레벨 감지하여 상호명 숨기기
-            map.on('zoomend', function() {
-                if (map.getZoom() < 11) document.getElementById('map').classList.add('hide-labels'); // 7번 클릭(14)에서 4번 클릭(11) 기준으로 변경
+          map.on('zoomend', function() {
+                if (map.getZoom() < 13) document.getElementById('map').classList.add('hide-labels'); // 화면 번잡함을 줄이기 위해 6번 클릭(13) 기준으로 변경
                 else document.getElementById('map').classList.remove('hide-labels');
             });
             
