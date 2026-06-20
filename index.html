@@ -285,13 +285,13 @@ function renderFilters() {
 
                 if (cls === '전설의 맛집') {
                     borderColor = 'border-green-600';  // 기존 테두리 유지
-                    flatColor = 'bg-green-600';        // 기존 우측 수직 바 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-green-600' : 'bg-gray-300'; // 활성 시 진한 초록, 비활성 시 연한 회색
                 } else if (cls === '가벼운 한끼') {
                     borderColor = 'border-red-600';    // 기존 테두리 유지
-                    flatColor = 'bg-red-600';          // 기존 우측 수직 바 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-red-600' : 'bg-gray-300';   // 활성 시 진한 빨강, 비활성 시 연한 회색
                 } else if (cls === '맛집 실험실') {
                     borderColor = 'border-yellow-500'; // 기존 테두리 유지
-                    flatColor = 'bg-yellow-500';       // 기존 우측 수직 바 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-yellow-500' : 'bg-gray-300'; // 활성 시 진한 노랑, 비활성 시 연한 회색
                 }
 
                 btn.className = `py-1 px-0.5 text-[17.5px] font-bold border rounded-lg whitespace-nowrap tracking-tight transition-all focus:outline-none ${
