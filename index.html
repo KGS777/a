@@ -269,11 +269,11 @@
                 bounds: koreaBounds // 핵심: 이 영역 밖의 지도 타일은 네트워크 요청을 하지 않음
             }).addTo(map);
             
-            markersGroup = L.layerGroup().addTo(map);
+          markersGroup = L.layerGroup().addTo(map);
 
             // 줌 레벨 감지하여 상호명 숨기기
             map.on('zoomend', function() {
-                if (map.getZoom() < 14) document.getElementById('map').classList.add('hide-labels');
+                if (map.getZoom() < 11) document.getElementById('map').classList.add('hide-labels'); // 7번 클릭(14)에서 4번 클릭(11) 기준으로 변경
                 else document.getElementById('map').classList.remove('hide-labels');
             });
             
