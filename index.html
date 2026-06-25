@@ -58,8 +58,7 @@
 <body class="bg-gray-100 flex justify-center h-screen overflow-hidden">
 
     <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
-        
- <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex items-center shadow-lg rounded-full pointer-events-auto bg-white/10 border-2 border-gray-800 backdrop-blur-md px-3 py-[2px]">
+<div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex items-center shadow-lg rounded-full pointer-events-auto bg-white/10 border-2 border-gray-800 backdrop-blur-md px-3 py-[2px]">
             <input type="text" id="search-input" class="w-36 outline-none text-[13px] bg-transparent font-bold text-gray-800 placeholder-gray-600" placeholder="상호/주소">
             <button id="btn-search" class="bg-green-600 hover:bg-green-700 text-white text-[14px] px-4 h-[26px] font-bold rounded-full transition-colors whitespace-nowrap flex items-center justify-center">검색</button>
         </div>
@@ -94,7 +93,7 @@
                 </div>
             </div>
 
-        <div id="restaurant-detail" class="px-2 hidden mb-8">
+<div id="restaurant-detail" class="px-2 hidden mb-8">
                 <div id="single-detail-template" class="border-2 border-dashed border-gray-400 p-2 bg-white relative">
                     <button id="close-detail" class="absolute top-1 right-1 text-gray-400 hover:text-gray-700">
                         <i class="fa-solid fa-xmark text-lg"></i>
@@ -135,44 +134,6 @@
                 </div>
 
                 <div id="multiple-list-container" class="hidden space-y-2 max-h-[32vh] overflow-y-auto pr-1" style="touch-action: pan-y;"></div>
-            </div>
-                    <button id="close-detail" class="absolute top-1 right-1 text-gray-400 hover:text-gray-700">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                    
-                    <h2 id="detail-name" class="text-xl font-black mb-1">식당이름</h2>
-                    
-                    <div class="flex justify-between items-start mb-1">
-                        <p class="text-[13px] text-gray-700 flex items-start font-bold leading-tight mt-0.5">
-                            <i class="fa-solid fa-caret-right mt-1 mr-1 text-gray-500"></i>
-                            <span>주소 : <span id="detail-address" class="font-normal">주소내용</span></span>
-                        </p>
-                        <button id="naver-map-btn" class="bg-green-600 active:bg-green-800 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm whitespace-nowrap ml-2 transition-colors">네이버지도</button>
-                    </div>
-                    
-                    <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1 table-fixed">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="border border-gray-300 py-0.5 font-bold w-[45px]">장르</th>
-                                <th class="border border-gray-300 py-0.5 font-bold w-[65px]">종목</th>
-                                <th class="border border-gray-300 py-0.5 font-bold w-[45px]">주차</th>
-                                <th class="border border-gray-300 py-0.5 font-bold">추천메뉴</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="detail-genre" class="border border-gray-300 py-0.5"></td>
-                                <td id="detail-type" class="border border-gray-300 py-0.5"></td>
-                                <td id="detail-parking" class="border border-gray-300 py-0.5"></td>
-                                <td id="detail-menu" class="border border-gray-300 py-0.5 font-bold text-blue-700 truncate px-1"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div id="detail-note" class="border border-gray-300 p-1.5 text-[13.5px] leading-relaxed bg-gray-50 rounded mt-1">
-                        참고사항 내용이 들어갑니다.
-                    </div>
-                </div>
             </div>
 
             <div id="empty-state" class="px-4 py-8 text-center text-gray-500">
@@ -216,17 +177,301 @@
             } catch (err) {
                 console.error("초기화 오류:", err);
             }
-// 닫기 버튼 클릭 리스너 제어 (기능 통합 복구)
+
+         // 닫기 버튼 클릭 리스너 제어 (기능 통합 복구)
             document.getElementById('close-detail').addEventListener('click', closeRestaurantDetail);
 
-        // 상세 및 다중 리스트 창을 닫고 초기화하는 공용 함수
+          document.getElementById('naver-map-btn').addEventListener('click', () => {
+                const restaurantName = document.getElementById('detail-name').innerText;
+                const addressText = document.getElementById('detail-address').innerText;
+                const naverMapUrl = `https://map.naver.com/p/search/${encodeURIComponent(addressText + ' ' + restaurantName)}`;
+                window.open(naverMapUrl, '_blank');
+            });
+
+            document.getElementById('btn-search').addEventListener('click', executeSearch);
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') executeSearch();
+            });
+
+         document.getElementById('btn-toggle-all').addEventListener('click', () => {
+                // 등급 버튼은 유지하고, 8개 종목 버튼(장르)에 대해서만 토글 기능 수행
+                if (activeGenres.size > 0) {
+                    activeGenres.clear();
+                } else {
+                    GENRES.forEach(g => activeGenres.add(g));
+                }
+                renderFilters();
+                updateMapMarkers();
+            });
+
+            // 내 위치 버튼 클릭 로직
+            document.getElementById('btn-my-loc').addEventListener('click', () => {
+                map.locate({ setView: true, maxZoom: 15 });
+            });
+
+            map.on('locationfound', function(e) {
+                if (window.myLocMarker) map.removeLayer(window.myLocMarker);
+                if (window.myLocCircle) map.removeLayer(window.myLocCircle);
+                
+                window.myLocMarker = L.marker(e.latlng).addTo(map).bindPopup("현재 위치").openPopup();
+                window.myLocCircle = L.circle(e.latlng, e.accuracy / 2, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.2
+                }).addTo(map);
+            });
+
+            map.on('locationerror', function(e) {
+                alert("위치 정보를 가져올 수 없습니다. 기기나 브라우저의 위치 권한을 확인해주세요.");
+            });
+        }
+
+        function showSampleData(err) {
+            restaurants = [
+                {"식당명": "귀골산장", "주소": "충북 충주시 살미면 향산리 491", "등급": "가벼운 한끼", "장르": "한식", "종목": "매운탕", "추천메뉴": "메기매운탕", "참고사항": "샘플 데이터입니다.", "coords": [36.908332, 127.935124]},
+                {"식당명": "넙딱집", "주소": "경기 고양시 일산동구 장항동 854-1", "등급": "가벼운 한끼", "장르": "한식", "종목": "고기구이", "추천메뉴": "이불갈비", "참고사항": "샘플 데이터입니다.", "coords": [37.660124, 126.772541]}
+            ];
+            renderFilters();
+            updateMapMarkers();
+        }
+
+        function initMap() {
+            // 1. 남한 영역 경계 설정 (남서쪽 좌표, 북동쪽 좌표)
+            const southWest = L.latLng(33.0, 125.0); // 제주도 남쪽
+            const northEast = L.latLng(38.9, 132.0); // 강원도 고성 및 동해안 끝
+            const koreaBounds = L.latLngBounds(southWest, northEast);
+
+            // 2. 맵 초기화 시 경계 및 줌 레벨 제한 속성 부여
+            map = L.map('map', {
+                maxBounds: koreaBounds,
+                maxBoundsViscosity: 1.0, // 경계 이탈 방지 (1.0 = 완전 고정)
+                minZoom: 7 // 너무 많이 축소되어 경계 밖이 보이는 현상 방지
+            }).setView([36.5, 127.5], 7); // 초기 줌 레벨도 minZoom에 맞추어 상향 조정
+
+            // 3. 타일 레이어 로딩 시 해당 경계 영역의 데이터만 다운로드하도록 제한
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                bounds: koreaBounds // 핵심: 이 영역 밖의 지도 타일은 네트워크 요청을 하지 않음
+            }).addTo(map);
+            
+          markersGroup = L.layerGroup().addTo(map);
+
+            // 줌 레벨 감지하여 상호명 숨기기
+          map.on('zoomend', function() {
+                if (map.getZoom() < 13) document.getElementById('map').classList.add('hide-labels'); // 화면 번잡함을 줄이기 위해 6번 클릭(13) 기준으로 변경
+                else document.getElementById('map').classList.remove('hide-labels');
+            });
+            
+            document.getElementById('map').classList.add('hide-labels');
+        }
+
+function renderFilters() {
+            const classContainer = document.getElementById('class-filters');
+            classContainer.innerHTML = ''; 
+            CLASSES.forEach(cls => {
+                const btn = document.createElement('button');
+                
+                // 버튼 상태별 색상 변수 분리
+                let activeBgColor = 'bg-white';    // 활성 상태 배경색을 하얀색으로 통일
+                let activeTextColor = 'text-black'; // 활성 상태 글자색을 검은색으로 통일
+                let borderColor = '';
+                let flatColor = '';
+
+                if (cls === '전설의 맛집') {
+                    borderColor = 'border-green-600';  // 기존 테두리 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-green-600' : 'bg-gray-300'; // 활성 시 진한 초록, 비활성 시 연한 회색
+                } else if (cls === '가벼운 한끼') {
+                    borderColor = 'border-red-600';    // 기존 테두리 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-red-600' : 'bg-gray-300';   // 활성 시 진한 빨강, 비활성 시 연한 회색
+                } else if (cls === '맛집 실험실') {
+                    borderColor = 'border-yellow-500'; // 기존 테두리 유지
+                    flatColor = activeClasses.has(cls) ? 'bg-yellow-500' : 'bg-gray-300'; // 활성 시 진한 노랑, 비활성 시 연한 회색
+                }
+
+                btn.className = `py-1 px-0.5 text-[17.5px] font-bold border rounded-lg whitespace-nowrap tracking-tight transition-all focus:outline-none ${
+                    activeClasses.has(cls) 
+                    ? `${activeBgColor} ${activeTextColor} ${borderColor} shadow-[3px_3px_5px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]` 
+                    : 'bg-white text-gray-400 border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]'
+               }`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-center space-x-1">
+                        <span>${cls}</span>
+                        <div class="w-1.5 h-[17px] rounded-full border-[0.5px] border-black ${flatColor}"></div>
+                    </div>
+                `;
+
+                btn.onclick = () => toggleFilter('class', cls, btn);
+                classContainer.appendChild(btn);
+            });
+
+           const genreContainer = document.getElementById('genre-filters');
+            genreContainer.innerHTML = ''; 
+            GENRES.forEach(gen => {
+                const btn = document.createElement('button');
+                btn.className = `py-0.5 px-1 text-base font-bold border rounded-lg transition-all focus:outline-none ${
+                    activeGenres.has(gen) 
+                    ? 'bg-blue-100 text-black border-blue-400 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]' 
+                    : 'bg-gray-100 text-black border-gray-300 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px]'
+                }`;
+                btn.innerText = gen;
+                btn.onclick = () => toggleFilter('genre', gen, btn);
+                genreContainer.appendChild(btn);
+            });
+        }
+
+        function toggleFilter(type, value, element) {
+            const set = type === 'class' ? activeClasses : activeGenres;
+            if (set.has(value)) set.delete(value);
+            else set.add(value);
+            
+            renderFilters();
+            updateMapMarkers(); 
+        }
+
+        function updateMapMarkers() {
+            markersGroup.clearLayers(); 
+
+            const filteredData = restaurants.filter(r => 
+                activeClasses.has(r.등급) && activeGenres.has(r.장르)
+            );
+
+            filteredData.forEach(r => {
+                let iconClass = 'marker-lab';
+                let iconHtml = '<i class="fa-solid fa-star"></i>';
+                
+                if (r.등급 === '전설의 맛집') {
+                    iconClass = 'marker-legend';
+                } else if (r.등급 === '가벼운 한끼') {
+                    iconClass = 'marker-light';
+                }
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="custom-marker ${iconClass}">${iconHtml}</div>`,
+                    iconSize: [21, 21],       // 30px에서 30% 축소된 크기 적용
+                    iconAnchor: [10.5, 10.5]  // 크기 축소에 비례하여 중심 앵커 좌표 재계산
+                });
+
+                const marker = L.marker(r.coords, { icon: customIcon }).addTo(markersGroup);
+                
+                marker.bindTooltip(r.식당명, { 
+                    permanent: true, direction: 'bottom', offset: [0, 10], className: 'marker-label' 
+                });
+                
+                marker.on('click', () => {
+                    showRestaurantDetail(r);
+                    map.panTo(r.coords); 
+                });
+            });
+        }
+
+function showRestaurantDetail(data) {
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('restaurant-detail').classList.remove('hidden');
+            
+            // 다중 리스트 상태의 흔적을 지우고 단일 뷰 가시성 복구 보장
+            document.getElementById('single-detail-template').classList.remove('hidden');
+            const multiContainer = document.getElementById('multiple-list-container');
+            if(multiContainer) {
+                multiContainer.innerHTML = '';
+                multiContainer.classList.add('hidden');
+            }
+
+            // 마커 클릭 시 정보창이 잘리지 않도록 45vh(상향된 최고 한계점)까지 당겨올림
+            const mapWrapper = document.getElementById('map-wrapper');
+            if(mapWrapper) {
+                mapWrapper.style.height = '45vh';
+                if(map) setTimeout(() => map.invalidateSize(), 300); // 부드러운 애니메이션 후 렌더링 갱신
+            }
+
+            document.getElementById('detail-name').innerText = data.식당명;
+            document.getElementById('detail-address').innerText = data.주소;
+            document.getElementById('detail-genre').innerText = data.장르;
+            document.getElementById('detail-type').innerText = data.종목;
+            document.getElementById('detail-parking').innerText = data.주차 || '-';
+            document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
+            document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
+            
+            // 스크롤 기능 삭제로 인한 스크롤 이동 로직 제거
+        }
+
+     // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
+        document.addEventListener('DOMContentLoaded', () => {
+            const mapWrapper = document.getElementById('map-wrapper');
+            const handle = document.querySelector('.flex-1.overflow-hidden');
+            let isDragging = false;
+            let startY, startHeight;
+            let hasMoved = false; // 추가: 단순 터치와 드래그를 구분하기 위한 변수
+
+            const startDrag = (e) => {
+                isDragging = true;
+                hasMoved = false; // 드래그 시작 시 초기화
+                startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                startHeight = mapWrapper.offsetHeight;
+                document.body.style.userSelect = 'none'; 
+                // 추가: 드래그 중에는 0.3초 애니메이션 지연을 없애 즉각 반응하게 조치
+                mapWrapper.classList.remove('transition-all', 'duration-300', 'ease-out');
+            };
+
+            const onDrag = (e) => {
+                if (!isDragging) return;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                const deltaY = clientY - startY; 
+                
+                // 추가: 터치 후 5px 이상 움직였다면 '드래그' 상태로 판별
+                if (Math.abs(deltaY) > 5) hasMoved = true; 
+
+                const vhDelta = (deltaY / window.innerHeight) * 100;
+                let newMapHeight = (startHeight / window.innerHeight) * 100 + vhDelta;
+
+                // 지도는 최소 45vh 유지 (식당 정보창 가림 방지선)
+                if (newMapHeight < 45) newMapHeight = 45; 
+                // 지도는 최대 85vh 까지만 넓어짐
+                if (newMapHeight > 85) newMapHeight = 85; 
+
+                mapWrapper.style.height = `${newMapHeight}vh`;
+                if(map) map.invalidateSize(); 
+            };
+
+            const endDrag = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                document.body.style.userSelect = '';
+                // 추가: 드래그가 끝나면 다시 애니메이션 속성 복구
+                mapWrapper.classList.add('transition-all', 'duration-300', 'ease-out');
+
+                // 추가: 드래그(5px 이상 이동) 후 손을 뗐다면, 그 위치에 있는 버튼이 눌리지 않게 차단
+                if (hasMoved) {
+                    const preventClick = (clickEvent) => {
+                        clickEvent.stopPropagation();
+                        clickEvent.preventDefault();
+                        document.removeEventListener('click', preventClick, true);
+                    };
+                    document.addEventListener('click', preventClick, true);
+                    // 혹시라도 이벤트가 증발할 경우를 대비한 클리어 타이머
+                    setTimeout(() => document.removeEventListener('click', preventClick, true), 50);
+                }
+            };
+
+            handle.addEventListener('mousedown', startDrag);
+            handle.addEventListener('touchstart', startDrag, { passive: true });
+            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('touchmove', onDrag, { passive: true });
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchend', endDrag);
+        });
+
+// 상세 및 다중 리스트 창을 닫고 초기화하는 공용 함수
         function closeRestaurantDetail() {
             document.getElementById('restaurant-detail').classList.add('hidden');
             document.getElementById('empty-state').classList.remove('hidden');
             document.getElementById('single-detail-template').classList.remove('hidden');
             const multiContainer = document.getElementById('multiple-list-container');
-            multiContainer.innerHTML = '';
-            multiContainer.classList.add('hidden');
+            if(multiContainer) {
+                multiContainer.innerHTML = '';
+                multiContainer.classList.add('hidden');
+            }
             
             const mapWrapper = document.getElementById('map-wrapper');
             if(mapWrapper) {
@@ -350,45 +595,6 @@
                 multiContainer.appendChild(itemBox);
             });
         }
-④ JavaScript 마커 클릭 핸들러 내부 수정 블록 (삭제 및 교체)
-지도 상에서 개별 마커를 직접 클릭했을 때도 기존에 다중 리스트 화면 상태로 남아있던 템플릿의 가시성 상태가 정상 환원되도록 리셋 장치를 추가합니다.
-
-기존 코드 (삭제 대상):
-
-JavaScript
-        function showRestaurantDetail(data) {
-            document.getElementById('empty-state').classList.add('hidden');
-            document.getElementById('restaurant-detail').classList.remove('hidden');
-
-            // 마커 클릭 시 정보창이 잘리지 않도록 45vh(상향된 최고 한계점)까지 당겨올림
-            const mapWrapper = document.getElementById('map-wrapper');
-            if(mapWrapper) {
-                mapWrapper.style.height = '45vh';
-                if(map) setTimeout(() => map.invalidateSize(), 300); // 부드러운 애니메이션 후 렌더링 갱신
-            }
-
-            document.getElementById('detail-name').innerText = data.식당명;
-변경 및 끼워넣을 코드:
-
-JavaScript
-        function showRestaurantDetail(data) {
-            document.getElementById('empty-state').classList.add('hidden');
-            document.getElementById('restaurant-detail').classList.remove('hidden');
-            
-            // 다중 리스트 상태의 흔적을 지우고 단일 뷰 가시성 복구 보장
-            document.getElementById('single-detail-template').classList.remove('hidden');
-            const multiContainer = document.getElementById('multiple-list-container');
-            multiContainer.innerHTML = '';
-            multiContainer.classList.add('hidden');
-
-            // 마커 클릭 시 정보창이 잘리지 않도록 45vh(상향된 최고 한계점)까지 당겨올림
-            const mapWrapper = document.getElementById('map-wrapper');
-            if(mapWrapper) {
-                mapWrapper.style.height = '45vh';
-                if(map) setTimeout(() => map.invalidateSize(), 300); // 부드러운 애니메이션 후 렌더링 갱신
-            }
-
-            document.getElementById('detail-name').innerText = data.식당명;
         window.onload = initApp;
     </script>
 </body>
