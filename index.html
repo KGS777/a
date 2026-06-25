@@ -409,16 +409,17 @@ function showRestaurantDetail(data) {
                 // 전체 화면에서 하단 정보창이 필요한 만큼 뺀 공간을 지도의 높이로 할당
                 let targetMapHeightVh = ((window.innerHeight - naturalHeight) / window.innerHeight) * 100;
                 
-                // 지도의 하한선을 20vh로 유지하여 하단 정보창 공간 최우선 확보
+               // 지도의 하한선을 20vh로 유지하여 하단 정보창 공간 최우선 확보
                 if (targetMapHeightVh < 20) targetMapHeightVh = 20;
                 if (targetMapHeightVh > 85) targetMapHeightVh = 85;
                 
                 mapWrapper.style.height = `${targetMapHeightVh}vh`;
                 if(map) setTimeout(() => map.invalidateSize(), 300);
             }
-            }
         }
+
      // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
+   
         document.addEventListener('DOMContentLoaded', () => {
             const mapWrapper = document.getElementById('map-wrapper');
             const handle = document.querySelector('.flex-1.overflow-hidden');
