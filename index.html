@@ -68,11 +68,18 @@
 <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
             <div id="map" class="w-full h-full z-10"></div>
             
-            <div class="absolute bottom-4 left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
+<div class="absolute bottom-4 left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
                 <button id="btn-toggle-all" class="py-0.5 px-2 text-base font-bold border rounded-lg bg-orange-500 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">ON / OFF</button>
                 <button id="btn-my-loc" class="w-8 h-8 flex justify-center items-center border rounded-lg bg-white/80 text-gray-800 border-gray-600 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all backdrop-blur-sm" title="내 위치">
                     <i class="fa-solid fa-location-crosshairs text-lg"></i>
                 </button>
+            </div>
+            
+            <div class="absolute bottom-4 right-2 z-[1000] flex items-center shadow-[3px_3px_5px_rgba(0,0,0,0.15)] rounded-lg pointer-events-auto">
+                <div class="flex items-center bg-white border border-black rounded-lg overflow-hidden h-[34px]">
+                    <input type="text" id="search-input" class="px-2 w-28 outline-none text-[13px] h-full" placeholder="상호/주소">
+                    <button id="btn-search" class="bg-white hover:bg-gray-100 text-black text-[13px] px-2 font-bold h-full border-l border-gray-300 transition-colors whitespace-nowrap">상호/주소 검색</button>
+                </div>
             </div>
         </div>
         <div class="flex-1 overflow-hidden bg-gray-50 pb-16 relative" style="touch-action: none;">
@@ -104,7 +111,7 @@
                             <i class="fa-solid fa-caret-right mt-1 mr-1 text-gray-500"></i>
                             <span>주소 : <span id="detail-address" class="font-normal">주소내용</span></span>
                         </p>
-                        <button id="copy-address-btn" class="bg-blue-500 active:bg-blue-700 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm whitespace-nowrap ml-2 transition-colors">주소복사</button>
+                        <button id="naver-map-btn" class="bg-green-600 active:bg-green-800 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm whitespace-nowrap ml-2 transition-colors">네이버지도</button>
                     </div>
                     
                     <table class="w-full border-collapse border border-gray-300 text-center text-xs mb-1 table-fixed">
@@ -186,17 +193,16 @@
                 }
             });
 
-            document.getElementById('copy-address-btn').addEventListener('click', (e) => {
+          document.getElementById('naver-map-btn').addEventListener('click', () => {
+                const restaurantName = document.getElementById('detail-name').innerText;
                 const addressText = document.getElementById('detail-address').innerText;
-                navigator.clipboard.writeText(addressText).then(() => {
-                    const btn = e.target;
-                    btn.innerText = "복사완료!";
-                    btn.classList.replace('bg-blue-500', 'bg-lime-500');
-                    setTimeout(() => {
-                        btn.innerText = "주소복사";
-                        btn.classList.replace('bg-lime-500', 'bg-blue-500');
-                    }, 1500);
-                });
+                const naverMapUrl = `https://map.naver.com/p/search/${encodeURIComponent(addressText + ' ' + restaurantName)}`;
+                window.open(naverMapUrl, '_blank');
+            });
+
+            document.getElementById('btn-search').addEventListener('click', executeSearch);
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') executeSearch();
             });
 
          document.getElementById('btn-toggle-all').addEventListener('click', () => {
@@ -459,6 +465,57 @@ function renderFilters() {
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
         });
+
+       function executeSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            const queryNoSpace = query.replace(/\s+/g, '');
+            let matchedPoint = null;
+
+            for (const r of restaurants) {
+                const dbNameNoSpace = r.식당명.replace(/\s+/g, '');
+                if (dbNameNoSpace === queryNoSpace || dbNameNoSpace.includes(queryNoSpace) || (queryNoSpace.length >= dbNameNoSpace.length * 0.9 && queryNoSpace.includes(dbNameNoSpace))) {
+                    matchedPoint = r;
+                    break; 
+                }
+            }
+
+            if (!matchedPoint) {
+                for (const r of restaurants) {
+                    if (r.주소.replace(/\s+/g, '').includes(queryNoSpace)) {
+                        matchedPoint = r;
+                        break;
+                    }
+                }
+            }
+
+            if (matchedPoint) {
+                map.setView(matchedPoint.coords, 13);
+                showRestaurantDetail(matchedPoint);
+                return;
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=kr`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const result = data[0];
+                        if (result.boundingbox) {
+                            const bounds = [
+                                [result.boundingbox[0], result.boundingbox[2]],
+                                [result.boundingbox[1], result.boundingbox[3]]
+                            ];
+                            map.fitBounds(bounds);
+                        } else {
+                            map.setView([result.lat, result.lon], 13);
+                        }
+                    } else {
+                        alert('등록된 상호나 해당 주소지를 찾을 수 없습니다.');
+                    }
+                })
+                .catch(err => console.error('검색 오류:', err));
+        }
 
         window.onload = initApp;
     </script>
