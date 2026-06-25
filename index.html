@@ -65,19 +65,21 @@
         <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
             <div id="map" class="w-full h-full z-10"></div>
             
-            <div class="absolute bottom-[22px] left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
+            <div class="absolute bottom-[14px] left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
                 <button id="btn-toggle-all" class="py-0.5 px-2 text-base font-bold border rounded-lg bg-orange-500 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">ON / OFF</button>
                 <button id="btn-reset" class="py-0.5 px-2 text-base font-bold border rounded-lg bg-blue-600 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">초기화</button>
+            </div>
+
+            <div class="absolute bottom-[14px] right-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
+                <div class="text-[11px] text-gray-500 font-bold font-sans pointer-events-none select-none text-right pr-1">
+                    까슐랭 가이드 KJS
+                </div>
                 <button id="btn-my-loc" class="w-8 h-8 flex justify-center items-center border rounded-lg bg-white/80 text-gray-800 border-gray-600 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all backdrop-blur-sm" title="내 위치">
                     <i class="fa-solid fa-location-crosshairs text-lg"></i>
                 </button>
             </div>
-
-            <div class="absolute bottom-[6px] left-2 z-[1000] text-[10px] text-gray-400/60 font-sans pointer-events-none select-none text-left pl-1">
-                까슐랭 가이드 KJS
-            </div>
         </div>
-        <div class="flex-1 overflow-hidden bg-gray-50 pb-16 relative" style="touch-action: none;">
+<div class="flex-1 overflow-hidden bg-gray-50 pb-2 relative" style="touch-action: none;">
             
             	<div id="drag-handle" class="sticky top-0 left-0 w-full py-1 flex justify-center items-center cursor-ns-resize bg-gray-50 z-[1001] border-b border-gray-200">
                 <div class="w-12 h-1 bg-gray-300 rounded-full"></div>
@@ -93,8 +95,8 @@
                 </div>
             </div>
 
-<div id="restaurant-detail" class="px-2 hidden mb-8">
-                <div id="single-detail-template" class="border-2 border-dashed border-gray-400 p-2 bg-white relative">
+            <div id="restaurant-detail" class="px-2 hidden mb-1">
+                <div id="single-detail-template" class="border-2 border-dashed border-gray-400 p-2 bg-gray-100 relative shadow-[0_4px_8px_rgba(0,0,0,0.25)] rounded-sm">
                     <button id="close-detail" class="absolute top-1 right-1 text-gray-400 hover:text-gray-700">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
@@ -381,13 +383,6 @@ function showRestaurantDetail(data) {
                 multiContainer.ontouchmove = null;
             }
 
-            // 마커 클릭 시 정보창이 잘리지 않도록 45vh(상향된 최고 한계점)까지 당겨올림
-            const mapWrapper = document.getElementById('map-wrapper');
-            if(mapWrapper) {
-                mapWrapper.style.height = '45vh';
-                if(map) setTimeout(() => map.invalidateSize(), 300); // 부드러운 애니메이션 후 렌더링 갱신
-            }
-
             document.getElementById('detail-name').innerText = data.식당명;
             document.getElementById('detail-address').innerText = data.주소;
             document.getElementById('detail-genre').innerText = data.장르;
@@ -395,10 +390,30 @@ function showRestaurantDetail(data) {
             document.getElementById('detail-parking').innerText = data.주차 || '-';
             document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
             document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
-            
-            // 스크롤 기능 삭제로 인한 스크롤 이동 로직 제거
-        }
 
+            // 하단 여백 완벽 제거를 위한 맵 높이 동적 계산 (콘텐츠에 맞춰 지도 축소 비율 최적화)
+            const mapWrapper = document.getElementById('map-wrapper');
+            const bottomPanel = document.querySelector('.flex-1.overflow-hidden');
+            
+            if(mapWrapper && bottomPanel) {
+                // 패널의 실제 자연스러운 컨텐츠 높이 정밀 측정
+                bottomPanel.classList.remove('flex-1');
+                bottomPanel.style.height = 'auto';
+                const naturalHeight = bottomPanel.offsetHeight;
+                bottomPanel.classList.add('flex-1');
+                bottomPanel.style.height = '';
+                
+                // 창 전체 높이에서 패널 높이를 뺀 나머지를 맵의 vh로 설정
+                let targetMapHeightVh = ((window.innerHeight - naturalHeight) / window.innerHeight) * 100;
+                
+                // 한계점 안전장치
+                if (targetMapHeightVh < 40) targetMapHeightVh = 40;
+                if (targetMapHeightVh > 85) targetMapHeightVh = 85;
+                
+                mapWrapper.style.height = `${targetMapHeightVh}vh`;
+                if(map) setTimeout(() => map.invalidateSize(), 300);
+            }
+        }
      // 드래그를 통한 지도 면적 조절 로직 (안전장치 45vh 한계점 적용)
         document.addEventListener('DOMContentLoaded', () => {
             const mapWrapper = document.getElementById('map-wrapper');
