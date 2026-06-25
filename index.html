@@ -58,11 +58,10 @@
 <body class="bg-gray-100 flex justify-center h-screen overflow-hidden">
 
     <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
-<div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex items-center shadow-lg rounded-full pointer-events-auto bg-white/10 border-2 border-gray-800 backdrop-blur-md px-3 py-[2px]">
-            <input type="text" id="search-input" class="w-36 outline-none text-[13px] bg-transparent font-bold text-gray-800 placeholder-gray-600" placeholder="상호/주소">
-            <button id="btn-search" class="bg-green-600 hover:bg-green-700 text-white text-[14px] px-4 h-[26px] font-bold rounded-full transition-colors whitespace-nowrap flex items-center justify-center">검색</button>
+<div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex items-center shadow-lg rounded-full pointer-events-auto bg-white border-2 border-gray-800 pl-4 overflow-hidden h-[32px]">
+            <input type="text" id="search-input" class="w-32 outline-none text-[13px] bg-transparent font-bold text-gray-800 placeholder-gray-600 h-full" placeholder="상호/주소">
+            <button id="btn-search" class="bg-green-600 hover:bg-green-700 text-white text-[14px] px-4 h-full font-bold transition-colors whitespace-nowrap flex items-center justify-center">검색</button>
         </div>
-
         <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
             <div id="map" class="w-full h-full z-10"></div>
             
@@ -133,7 +132,7 @@
                     </div>
                 </div>
 
-                <div id="multiple-list-container" class="hidden space-y-2 max-h-[32vh] overflow-y-auto pr-1" style="touch-action: pan-y;"></div>
+                <div id="multiple-list-container" class="hidden space-y-2 max-h-[34vh] overflow-y-auto pr-1 pb-16" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"></div>
             </div>
 
             <div id="empty-state" class="px-4 py-8 text-center text-gray-500">
@@ -376,6 +375,9 @@ function showRestaurantDetail(data) {
             if(multiContainer) {
                 multiContainer.innerHTML = '';
                 multiContainer.classList.add('hidden');
+                // 터치 이벤트 제한 원상 복구
+                multiContainer.ontouchstart = null;
+                multiContainer.ontouchmove = null;
             }
 
             // 마커 클릭 시 정보창이 잘리지 않도록 45vh(상향된 최고 한계점)까지 당겨올림
@@ -539,7 +541,7 @@ function showRestaurantDetail(data) {
                 .catch(err => console.error('검색 오류:', err));
         }
 
-        // 다중 검색 결과 타일 리스트 동적 빌드 함수
+// 다중 검색 결과 타일 리스트 동적 빌드 함수 (터치 간섭 완벽 배제 버전)
         function showMultipleRestaurantsList(resultsList) {
             document.getElementById('empty-state').classList.add('hidden');
             document.getElementById('restaurant-detail').classList.remove('hidden');
@@ -548,6 +550,13 @@ function showRestaurantDetail(data) {
             const multiContainer = document.getElementById('multiple-list-container');
             multiContainer.innerHTML = ''; // 초기화
             multiContainer.classList.remove('hidden');
+
+            // 다중 리스트 전용 터치 스크롤 이벤트 버블링 강제 차단 (바텀시트 드래그 이벤트 전파 완전 방지)
+            const stopPropagationFunc = function(e) {
+                e.stopPropagation();
+            };
+            multiContainer.addEventListener('touchstart', stopPropagationFunc, { passive: true });
+            multiContainer.addEventListener('touchmove', stopPropagationFunc, { passive: true });
 
             // 리스트 노출 시 하단 바 높이 안전장치 45vh 확장 적용
             const mapWrapper = document.getElementById('map-wrapper');
@@ -582,7 +591,10 @@ function showRestaurantDetail(data) {
                 // 식당선택 버튼 클릭 리스너 구현
                 itemBox.querySelector('.select-restaurant-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // 다중 리스트 컨테이너 제거 및 단일 폼 복구
+                    
+                    // 이벤트 제거 및 리스트 초기화
+                    multiContainer.removeEventListener('touchstart', stopPropagationFunc);
+                    multiContainer.removeEventListener('touchmove', stopPropagationFunc);
                     multiContainer.classList.add('hidden');
                     multiContainer.innerHTML = '';
                     document.getElementById('single-detail-template').classList.remove('hidden');
