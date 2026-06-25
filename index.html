@@ -68,17 +68,17 @@
 <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
             <div id="map" class="w-full h-full z-10"></div>
             
-<div class="absolute bottom-4 left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
+<div class="absolute bottom-[22px] left-2 z-[1000] flex items-center space-x-2 pointer-events-auto">
                 <button id="btn-toggle-all" class="py-0.5 px-2 text-base font-bold border rounded-lg bg-orange-500 text-white border-black shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all">ON / OFF</button>
                 <button id="btn-my-loc" class="w-8 h-8 flex justify-center items-center border rounded-lg bg-white/80 text-gray-800 border-gray-600 shadow-[3px_3px_5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[2px] active:translate-x-[2px] transition-all backdrop-blur-sm" title="내 위치">
                     <i class="fa-solid fa-location-crosshairs text-lg"></i>
                 </button>
             </div>
             
-            <div class="absolute bottom-4 right-2 z-[1000] flex items-center shadow-[3px_3px_5px_rgba(0,0,0,0.15)] rounded-lg pointer-events-auto">
-                <div class="flex items-center bg-white border border-black rounded-lg overflow-hidden h-[34px]">
-                    <input type="text" id="search-input" class="px-2 w-28 outline-none text-[13px] h-full" placeholder="상호/주소">
-                    <button id="btn-search" class="bg-white hover:bg-gray-100 text-black text-[13px] px-2 font-bold h-full border-l border-gray-300 transition-colors whitespace-nowrap">상호/주소 검색</button>
+            <div class="absolute bottom-[22px] right-2 z-[1000] flex items-center shadow-[3px_3px_5px_rgba(0,0,0,0.15)] rounded-full pointer-events-auto">
+                <div class="flex items-center bg-white border border-black rounded-full overflow-hidden h-[34px]">
+                    <input type="text" id="search-input" class="pl-4 pr-2 w-32 outline-none text-[13px] h-full" placeholder="상호/주소">
+                    <button id="btn-search" class="bg-white hover:bg-gray-100 text-black text-[13px] pl-2 pr-4 font-bold h-full border-l border-gray-300 transition-colors whitespace-nowrap rounded-r-full">상호/주소 검색</button>
                 </div>
             </div>
         </div>
