@@ -59,7 +59,7 @@
 
     <div class="w-full max-w-md bg-white h-full flex flex-col relative shadow-2xl">
 <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] flex items-center shadow-lg rounded-full pointer-events-auto bg-white border-2 border-gray-800 px-1.5 py-1">
-            <input type="text" id="search-input" class="w-32 outline-none text-[13px] bg-transparent font-bold text-gray-800 placeholder-gray-400 pl-3" placeholder="상호/주소">
+            <input type="text" id="search-input" class="w-44 outline-none text-[13px] bg-transparent font-bold text-gray-800 placeholder-gray-400 pl-3" placeholder="상호/주소">
             <button id="btn-search" class="bg-green-600 hover:bg-green-700 text-white text-[14px] px-4 py-0.5 rounded-full font-bold transition-colors whitespace-nowrap flex items-center justify-center">검색</button>
         </div>
         <div id="map-wrapper" class="relative w-full h-[70vh] shrink-0 border-b-2 border-gray-300 transition-all duration-300 ease-out">
@@ -391,23 +391,23 @@ function showRestaurantDetail(data) {
             document.getElementById('detail-menu').innerText = data.추천메뉴 || '-';
             document.getElementById('detail-note').innerText = data.참고사항 || '등록된 참고사항이 없습니다.';
 
-            // 하단 여백 완벽 제거를 위한 맵 높이 동적 계산 (콘텐츠에 맞춰 지도 축소 비율 최적화)
+  // 하단 여백 완벽 제거를 위한 맵 높이 동적 계산 (콘텐츠에 맞춰 지도 축소 비율 최적화)
             const mapWrapper = document.getElementById('map-wrapper');
             const bottomPanel = document.querySelector('.flex-1.overflow-hidden');
             
             if(mapWrapper && bottomPanel) {
-                // 패널의 실제 자연스러운 컨텐츠 높이 정밀 측정
+                // 패널 내부 콘텐츠가 요구하는 실제 100% 높이값(텍스트 줄바꿈 등 포함) 추출
                 bottomPanel.classList.remove('flex-1');
                 bottomPanel.style.height = 'auto';
-                const naturalHeight = bottomPanel.offsetHeight;
+                const naturalHeight = bottomPanel.scrollHeight;
                 bottomPanel.classList.add('flex-1');
                 bottomPanel.style.height = '';
                 
-                // 창 전체 높이에서 패널 높이를 뺀 나머지를 맵의 vh로 설정
+                // 전체 화면에서 하단 정보창이 필요한 만큼 뺀 공간을 지도의 높이로 할당
                 let targetMapHeightVh = ((window.innerHeight - naturalHeight) / window.innerHeight) * 100;
                 
-                // 한계점 안전장치
-                if (targetMapHeightVh < 40) targetMapHeightVh = 40;
+                // [잘림 현상 해결] 지도의 하한선을 40vh에서 20vh로 대폭 낮추어 하단 정보창이 100% 다 보일 수 있도록 공간 양보
+                if (targetMapHeightVh < 20) targetMapHeightVh = 20;
                 if (targetMapHeightVh > 85) targetMapHeightVh = 85;
                 
                 mapWrapper.style.height = `${targetMapHeightVh}vh`;
